@@ -25,17 +25,17 @@ async function ContructFileData({
 let Queque: string[] = [];
 
 async function InitiateDownloadFile() {
+    console.log(Queque);
     if (Queque.length > 0) {
         const fileCode = Queque.shift();
         await ContructFileData({
             fileCode: fileCode as string
         });
-
     }
 }
 async function main() {
     const dataFileList = await (await fetch("https://dropload.io/api/file/list?key=" + process.env.DROPFILE_KEY + "&fld_id=13673")).json();
-    for (let i = 0; i < dataFileList.result.files; i++) {
+    for (let i = 0; i < dataFileList.result.files.length; i++) {
         Queque.push(dataFileList.result.files[i].file_code as string);
     }
     await InitiateDownloadFile();
@@ -61,7 +61,7 @@ async function DownloadFile({
     const downloadedPath = path.join(__dirname, 'downloaded', fileName);
     const logFilePath = path.join(__dirname, 'download.log');
 
-    const logMessage = (message) => {
+    const logMessage = (message: string) => {
         const log = `${new Date().toISOString()} - ${message}\n`;
         fs.appendFileSync(logFilePath, log);
         console.log(log);
