@@ -34,7 +34,7 @@ async function InitiateDownloadFile() {
     }
 }
 async function main() {
-    const dataFileList = await (await fetch("https://dropload.io/api/file/list?key=" + process.env.DROPFILE_KEY + "&fld_id=13673&page=3")).json();
+    const dataFileList = await (await fetch("https://dropload.io/api/file/list?key=" + process.env.DROPFILE_KEY + "&fld_id=13673&page=4")).json();
     for (let i = 0; i < dataFileList.result.files.length; i++) {
         Queque.push(dataFileList.result.files[i].file_code as string);
     }
