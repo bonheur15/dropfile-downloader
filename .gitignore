@@ -1,0 +1,7 @@
+.env
+node_modules/
+download.log
+downloaded/
+downloading/
+!/downloading/.gitkeep
+!/downloaded/.gitkeep 
