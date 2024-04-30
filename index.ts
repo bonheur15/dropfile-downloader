@@ -4,23 +4,47 @@ import url from 'url';
 import path from 'path';
 
 
-// 
+// DownloadFile({
+//     fileName: "test4.zip",
+//     fileUrl: "http://ipv4.download.thinkbroadband.com/5MB.zip"
+// });
 
 
-fetch("https://dropload.io/api/file/direct_link?key="+process.env.DROPFILE_KEY+"&file_code=lvlfdypel8xt")
-.then(response => response.json())
-.then(async (data)=>{
-    await DownloadFile({
-        fileName:"thebeekeper.mp4",
-        fileUrl:data.results.versions[0].url
-    })
-});
+async function ContructFileData({
+    fileCode
+}:{
+    fileCode:string
+}){
+    const dataFileName = await (await fetch("https://dropload.io/api/file/info?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
+    const dataUrl = await (await fetch("https://dropload.io/api/file/direct_link?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
+    DownloadFile({
+        fileName: dataFileName.result[0].file_title as string,
+        fileUrl: dataUrl.result.versions[0].url as string
+    });
+}
 
+async function InitateDownloadFile(){
 
-DownloadFile({
-    fileName: "test4.zip",
-    fileUrl: "http://ipv4.download.thinkbroadband.com/5MB.zip"
-});
+}
+async function main() {
+    await ContructFileData({
+        fileCode: "wosjgjwcjygw"
+    });
+    await ContructFileData({
+        fileCode: "kua1tb3vecmf"
+    });
+    await ContructFileData({
+        fileCode: "bwp8ie7oww8k"
+    });
+    await ContructFileData({
+        fileCode: "ybsnuqzhrenm"
+    });
+    await ContructFileData({
+        fileCode: "gzvbe57bu3ip"
+    });
+}
+main().then(() => {});
+
 async function DownloadFile({
     fileName,
     fileUrl
@@ -41,14 +65,14 @@ async function DownloadFile({
     logMessage(`Starting download of ${fileName}`);
     const startTime = new Date();
     http.get(fileUrl, (response) => {
-        const totalSize = parseInt(response.headers['content-length'], 10);
+        const totalSize = parseInt(response.headers['content-length'] as string, 10);
         let downloadedSize = 0;
 
-        response.on('data', (chunk) => {
-            downloadedSize += chunk.length;
-            const progress = (downloadedSize / totalSize) * 100;
-            console.log(`Downloaded ${progress.toFixed(2)}%`);
-        });
+        // response.on('data', (chunk) => {
+        //     downloadedSize += chunk.length;
+        //     const progress = (downloadedSize / totalSize) * 100;
+        //     console.log(`Downloaded ${progress.toFixed(2)}%`);
+        // });
 
         const fileStream = fs.createWriteStream(downloadingPath);
         response.pipe(fileStream);
@@ -56,7 +80,7 @@ async function DownloadFile({
 
         fileStream.on('finish', () => {
             const endTime = new Date();
-            const duration = (endTime - startTime) / 1000; // Duration in seconds
+            const duration = ((endTime as unknown as number) - (startTime as unknown as number)) / 1000; // Duration in seconds
             logMessage(`Download of ${fileName} completed successfully in ${duration.toFixed(2)} seconds.`);
             fs.renameSync(downloadingPath, downloadedPath);
         });
