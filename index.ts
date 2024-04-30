@@ -18,7 +18,7 @@ async function ContructFileData({
     const dataFileName = await (await fetch("https://dropload.io/api/file/info?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
     const dataUrl = await (await fetch("https://dropload.io/api/file/direct_link?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
     DownloadFile({
-        fileName: dataFileName.result[0].file_title as string,
+        fileName: (dataFileName.result[0].file_title as string)+".mp4",
         fileUrl: dataUrl.result.versions[0].url as string
     });
 }
