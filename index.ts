@@ -12,38 +12,43 @@ import path from 'path';
 
 async function ContructFileData({
     fileCode
-}:{
-    fileCode:string
-}){
-    const dataFileName = await (await fetch("https://dropload.io/api/file/info?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
-    const dataUrl = await (await fetch("https://dropload.io/api/file/direct_link?key="+process.env.DROPFILE_KEY+"&file_code="+fileCode)).json();
+}: {
+    fileCode: string
+}) {
+    const dataFileName = await (await fetch("https://dropload.io/api/file/info?key=" + process.env.DROPFILE_KEY + "&file_code=" + fileCode)).json();
+    const dataUrl = await (await fetch("https://dropload.io/api/file/direct_link?key=" + process.env.DROPFILE_KEY + "&file_code=" + fileCode)).json();
     DownloadFile({
-        fileName: (dataFileName.result[0].file_title as string)+".mp4",
+        fileName: (dataFileName.result[0].file_title as string) + ".mp4",
         fileUrl: dataUrl.result.versions[0].url as string
     });
 }
+let Queque: string[] = [];
 
-async function InitateDownloadFile(){
+async function InitiateDownloadFile() {
+    if (Queque.length > 0) {
+        const fileCode = Queque.shift();
+        await ContructFileData({
+            fileCode: fileCode as string
+        });
 
+    }
 }
 async function main() {
-    await ContructFileData({
-        fileCode: "wosjgjwcjygw"
-    });
-    await ContructFileData({
-        fileCode: "kua1tb3vecmf"
-    });
-    await ContructFileData({
-        fileCode: "bwp8ie7oww8k"
-    });
-    await ContructFileData({
-        fileCode: "ybsnuqzhrenm"
-    });
-    await ContructFileData({
-        fileCode: "gzvbe57bu3ip"
-    });
+    const dataFileList = await (await fetch("https://dropload.io/api/file/list?key=" + process.env.DROPFILE_KEY + "&fld_id=13673")).json();
+    for (let i = 0; i < dataFileList.result.files; i++) {
+        Queque.push(dataFileList.result.files[i].file_code as string);
+    }
+    await InitiateDownloadFile();
+    await InitiateDownloadFile();
+
+    await InitiateDownloadFile();
+
+    await InitiateDownloadFile();
+
+    await InitiateDownloadFile();
+
 }
-main().then(() => {});
+main().then(() => { });
 
 async function DownloadFile({
     fileName,
@@ -65,28 +70,18 @@ async function DownloadFile({
     logMessage(`Starting download of ${fileName}`);
     const startTime = new Date();
     http.get(fileUrl, (response) => {
-        const totalSize = parseInt(response.headers['content-length'] as string, 10);
-        let downloadedSize = 0;
-
-        // response.on('data', (chunk) => {
-        //     downloadedSize += chunk.length;
-        //     const progress = (downloadedSize / totalSize) * 100;
-        //     console.log(`Downloaded ${progress.toFixed(2)}%`);
-        // });
-
         const fileStream = fs.createWriteStream(downloadingPath);
         response.pipe(fileStream);
-
-
-        fileStream.on('finish', () => {
+        fileStream.on('finish', async () => {
             const endTime = new Date();
             const duration = ((endTime as unknown as number) - (startTime as unknown as number)) / 1000; // Duration in seconds
             logMessage(`Download of ${fileName} completed successfully in ${duration.toFixed(2)} seconds.`);
             fs.renameSync(downloadingPath, downloadedPath);
+            await InitiateDownloadFile();
         });
 
-
-    }).on('error', (err) => {
+    }).on('error', async (err) => {
         logMessage(`Error downloading ${fileName}: ${err.message}`);
+        await InitiateDownloadFile();
     });
 }
